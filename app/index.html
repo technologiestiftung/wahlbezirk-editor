@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <link href="https://api.mapbox.com/mapbox-gl-js/v1.10.0/mapbox-gl.css" rel="stylesheet" />
+    <link rel="stylesheet" href="index.css">
+  </head>
+  <body>
+    <div id="districts">
+      <div id="districts-overall"></div>
+      <div id="districts-detail"></div>
+    </div>
+    <div id="districts-list">
+      <table>
+        <thead>
+          <tr>
+            <th>Wahlbezirk</th>
+            <th>Bevölkerung</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+          <tr>
+            <th>Wahlbezirk</th>
+            <th>Bevölkerung</th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <div id="map"></div>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v1.10.0/mapbox-gl.js"></script>
+    <script src="index.js"></script>
+  </body>
+</html>

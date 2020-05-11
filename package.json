@@ -1,0 +1,19 @@
+{
+  "name": "wahlbezirk-editor",
+  "version": "1.0.0",
+  "description": "edit voting districts and blocks",
+  "main": "server/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/technologiestiftung/wahlbezirk-editor.git"
+  },
+  "author": "sebastian-meier",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/technologiestiftung/wahlbezirk-editor/issues"
+  },
+  "homepage": "https://github.com/technologiestiftung/wahlbezirk-editor#readme"
+}
