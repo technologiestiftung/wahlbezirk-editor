@@ -61,3 +61,8 @@ svg text{
 #histoInitAxis text{
   display:none;
 }
+
+#neighbor_select li:hover, #districts-detail-other li:hover{
+  cursor: pointer;
+  background-color: rgba(0,0,0,0.2);
+}

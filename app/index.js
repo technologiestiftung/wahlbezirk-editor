@@ -89,7 +89,7 @@ const processData = (init) => {
 };
 
 const deselectDistrictBlocks = () => {
-  if (hoveredDistrictId) {
+  if (hoveredDistrictId !== null) {
     districts[districtKeys[hoveredDistrictId]].blocks.forEach((block) => {
       map.setFeatureState(
         { source: 'bloecke', id: block },
@@ -214,7 +214,7 @@ const setup = () => {
 
     map.on('mousemove', 'bloecke', function(e) {
       if (e.features.length > 0) {
-        if (hoveredStateId) {
+        if (hoveredStateId !== null) {
           map.setFeatureState(
             { source: 'bloecke', id: hoveredStateId },
             { hover: false }
@@ -236,7 +236,7 @@ const setup = () => {
     });
        
     map.on('mouseleave', 'bloecke', function() {
-      if (hoveredStateId) {
+      if (hoveredStateId !== null) {
         map.setFeatureState(
           { source: 'bloecke', id: hoveredStateId },
           { hover: false }
@@ -247,55 +247,119 @@ const setup = () => {
     });
 
     map.on('click', 'bloecke', function(e) {
-      const id = e.features[0].id;
-
-      // deselect current
-      map.setFeatureState(
-        { source: 'bloecke', id: selectedStateId },
-        { select: false }
-      );
-
-      if (selectedStateId === id) {
-        selectedStateId = null;
-        d3.select("#districts-detail").selectAll("*").remove();
-      } else {
-        // select new
-        selectedStateId = id;
-        map.setFeatureState(
-          { source: 'bloecke', id: id },
-          { select: true }
-        );
-
-        const tDistrict = districts[e.features[0].properties["DistrictId"]];
-
-        d3.select("#districts-detail").selectAll("*").remove();
-        d3.select("#districts-detail").html(`<div>
-          <h2>Block: ${e.features[0].properties["blknr_copy"]}</h2>
-          <p>Einwohner: ${e.features[0].properties["Insgesamt"]}</p>
-          <h3>Zugehöriger Wahlbezirk: ${tDistrict.id}</h3>
-          <p>
-            Einwohner: ${tDistrict.population}<br />
-            Alle Blöcke im Wahlbezirk:
-            <ul>
-              ${ tDistrict.blocks.map((d) => `<li>${geojson.features[d].properties["blknr_copy"]} (${geojson.features[d].properties["Insgesamt"]})</li>`).join("") }
-            </ul>
-          </p>
-          <h3>Verschiebe zu Nachbarn</h3>
-          <select id="neighbor_select">
-            ${ e.features[0].properties["neighbors"].split(",").map((d) => `<option value="${d}">${d} (${districts[districtKeys[d]].population} / ${districts[districtKeys[d]].population + e.features[0].properties["Insgesamt"]})</option>`).join("") }
-          </select>
-          <button id="districts-apply">Änderung anwenden</button>
-        </div>`);
-
-        d3.select('#districts-apply').on("click", () => {
-          geojson.features[id].properties["UWB"] = d3.select("#neighbor_select").property("value");
-          processData(false);
-          update();
-        });
-      }
-    });      
+      selectBlock(e.features[0].id);
+    });
+    
+    setupOtherStuff();
   });
+}
 
+const selectBlock = (id) => {
+  // deselect current
+  map.setFeatureState(
+    { source: 'bloecke', id: selectedStateId },
+    { select: false }
+  );
+
+  if (selectedStateId === id) {
+    selectedStateId = null;
+    d3.select("#districts-detail").selectAll("*").remove();
+  } else {
+    // select new
+    selectedStateId = id;
+    map.setFeatureState(
+      { source: 'bloecke', id: id },
+      { select: true }
+    );
+
+    const tDistrict = districts[districtKeys[geojson.features[id].properties["UWB"]]];
+
+    d3.select("#districts-detail").selectAll("*").remove();
+    d3.select("#districts-detail").html(`<div>
+      <h2>Block: ${geojson.features[id].properties["blknr_copy"]}</h2>
+      <p>Einwohner: ${geojson.features[id].properties["Insgesamt"]}</p>
+      <h3>Zugehöriger Wahlbezirk: ${tDistrict.id}</h3>
+      <p>
+        Einwohner: ${tDistrict.population}<br />
+        Alle Blöcke im Wahlbezirk:
+        <ul id="districts-detail-other">
+        </ul>
+      </p>
+      <h3>Verschiebe zu Nachbarn (${tDistrict.population} &raquo; ${tDistrict.population - geojson.features[id].properties["Insgesamt"]})</h3>
+      <ul id="neighbor_select">
+      </ul>
+      <button id="districts-apply">Änderung anwenden</button>
+    </div>`);
+
+    d3.select("#districts-detail-other").selectAll("li").data(tDistrict.blocks).enter().append("li")
+      .text((d) => `${geojson.features[d].properties["blknr_copy"]} (${geojson.features[d].properties["Insgesamt"]})`)
+      .style("color", (d) => (d === id) ? "red" : "black")
+      .on("mouseover", (d) => {
+        if (hoveredStateId !== null) {
+          map.setFeatureState(
+            { source: 'bloecke', id: hoveredStateId },
+            { hover: false }
+          );
+        }
+        hoveredStateId = d;
+        map.setFeatureState(
+          { source: 'bloecke', id: d },
+          { hover: true }
+        );
+      })
+      .on("mouseleave", (d) => {
+        if (hoveredStateId !== null) {
+          map.setFeatureState(
+            { source: 'bloecke', id: d },
+            { hover: false }
+          );
+        }
+        hoveredStateId = null;
+      })
+      .on("click", (d) => {
+        if (d !== id) {
+          selectBlock(d);
+        }
+      });
+    
+    d3.select("#neighbor_select").selectAll("li").data(geojson.features[id].properties["neighbors"].split(",").sort((a, b) => {
+      const ap = districts[districtKeys[a]].population;
+      const bp = districts[districtKeys[b]].population;
+      if (ap < bp) {
+        return -1;
+      } else if (ap > bp) {
+        return 1;
+      }
+      return 0;
+    })).enter().append("li")
+      .html((d) => `<input type="radio"${(d === tDistrict.id) ? ` checked="checked"` : ""} name="neighbor_selection" id="neighbor_selection_${d}" value="${d}"><label for="neighbor_selection_${d}">${d} (${districts[districtKeys[d]].population} / ${(d === tDistrict.id) ? districts[districtKeys[d]].population : districts[districtKeys[d]].population + geojson.features[id].properties["Insgesamt"]})</label></li>`)
+      .on("mouseover", (d) => {
+        deselectDistrictBlocks();
+
+        districts[districtKeys[d]].blocks.forEach((block) => {
+          map.setFeatureState(
+            { source: 'bloecke', id: block },
+            { selectDistrict: true }
+          );
+        });
+
+        hoveredDistrictId = districts[districtKeys[d]].id;
+      })
+      .on("mouseout", (d) => {
+        deselectDistrictBlocks();
+      });
+
+    d3.select('#districts-apply').on("click", () => {
+      geojson.features[id].properties["UWB"] = d3.select('input[name="neighbor_selection"]:checked').property("value");
+      processData(false);
+      update();
+      selectBlock(id);
+      selectBlock(id);
+    });
+  }
+};
+
+const setupOtherStuff = () => {
   rows = d3.select('#districts-list tbody').selectAll('tr').data(districts).enter().append('tr')
     .on("mouseover", (d) => {
       deselectDistrictBlocks();
