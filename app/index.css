@@ -43,7 +43,21 @@ tbody tr:hover{
   border: 1px solid black;
 }
 
+.colorfield{
+  display:inline-block;
+  width:10px;
+  height:10px;
+}
+
+td.colorcol{
+  width:10px;
+}
+
 svg text{
   font-family: sans-serif;
   font-size:10px;
+}
+
+#histoInitAxis text{
+  display:none;
 }

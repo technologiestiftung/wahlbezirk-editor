@@ -3,7 +3,7 @@
 // global objects
 let geojson,
 
-    map,
+    map, mapLoaded = false,
 
     districts = [],
     districtKeys = {},
@@ -14,17 +14,32 @@ let geojson,
     hoveredDistrictId = null,
 
     over = 0,
-    under = 0;
+    under = 0,
+    initOver = 0,
+    initUnder = 0,
+    histoData = [],
+    initHistoData = [];
 
 const limit = 2500;
+const overLimit = 500;
+const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
+const overPopulationScale = d3.scaleLinear().range(['rgba(0, 0, 255, 0.5)', 'rgba(255, 255, 255, 0.5)', 'rgba(255, 0, 0, 0.5)']).domain([0, limit, limit + overLimit]);
 
-// Load the data
-d3.json('network.geojson')
-  .then((data) => {
-    geojson = data;
-    const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
-    geojson.features.forEach((d, i) => {
+const processData = (init) => {
+  if (!init) {
+    districts.forEach((district) => {
+      district.population = 0;
+      district.blocks = [];
+    });
+    over = 0;
+    under = 0;
+    histoData = [];
+  }
+
+  geojson.features.forEach((d, i) => {
+    if (init) {
       d["id"] = i;
+      blockKeys[d.properties["blknr_copy"]] = i;
       d.properties['Insgesamt'] = +d.properties['Insgesamt'];
       if (!(d.properties["UWB"] in districtKeys)) {
         districts.push({
@@ -36,20 +51,87 @@ d3.json('network.geojson')
         districtKeys[d.properties["UWB"]] = districts.length - 1;
       }
       d.properties["DistrictId"] = districtKeys[d.properties["UWB"]];
-      districts[districtKeys[d.properties["UWB"]]].population += d.properties['Insgesamt'];
-      districts[districtKeys[d.properties["UWB"]]].blocks.push(i);
-      blockKeys[d.properties["blknr_copy"]] = i;
+    }
+    districts[districtKeys[d.properties["UWB"]]].population += d.properties['Insgesamt'];
+    districts[districtKeys[d.properties["UWB"]]].blocks.push(i);
+  });
+
+  geojson.features.forEach((d) => {
+    d.properties['DistrictPopulation'] = districts[districtKeys[d.properties["UWB"]]].population;
+    if (!init) {
+      const neighbors = [];
+      d.properties['neighbor_blocks'].split(",").forEach((neighbor) => {
+        const uwb = geojson.features[blockKeys[neighbor]].properties["UWB"];
+        if (!neighbors.includes(uwb)) {
+          neighbors.push(uwb);
+        }
+      });
+      d.properties['neighbors'] = neighbors.join(",");
+    }
+  });
+
+  districts.forEach((district) => {
+    if (district.population > limit) {
+      over += 1;
+      histoData.push(district.population);
+    } else {
+      under += 1;
+    }
+  });
+
+  if (init) {
+    initOver = over;
+    initUnder = under;
+    initHistoData = histoData;
+  }
+
+  overallScale.domain([0, over+under]);
+};
+
+const deselectDistrictBlocks = () => {
+  if (hoveredDistrictId) {
+    districts[districtKeys[hoveredDistrictId]].blocks.forEach((block) => {
+      map.setFeatureState(
+        { source: 'bloecke', id: block },
+        { selectDistrict: false }
+      );
     });
-    geojson.features.forEach((d) => {
-      d.properties['DistrictPopulation'] = districts[districtKeys[d.properties["UWB"]]].population;
-    });
-    districts.forEach((district) => {
-      if (district.population > limit) {
-        over += 1;
-      } else {
-        under += 1;
-      }
-    });
+  }
+  hoveredDistrictId = null;
+};
+
+let currentAsc = true;
+let currentSort = null;
+let rows;
+let populationCol;
+const sortRows = (key) => {
+  if (currentSort === key) {
+    currentAsc = !currentAsc;
+  }
+  currentSort = key;
+  rows.sort((a, b) => {
+    if (a[key] < b[key]) {
+      return 1 * (currentAsc ? 1 : -1);
+    } else if (a[key] > b[key]) {
+      return -1 * (currentAsc ? 1 : -1);
+    }
+    return 0;
+  });
+};
+
+let overallSVG;
+const overallScale = d3.scaleLinear().domain([0, over+under]).range([0, 288]);
+const histoHeight = 100;
+const histoY = d3.scaleLinear().range([histoHeight, 0]);
+const histoInitY = d3.scaleLinear().range([0, histoHeight]);
+let histoYAxis,histoRects, histogram, histoX, histo, histoRectsContainer;
+
+// TODO: Check URL Params for loading the right model
+// Load the data
+d3.json('network.geojson')
+  .then((data) => {
+    geojson = data;
+    processData(true);
     setup();
   });
  
@@ -68,6 +150,8 @@ const setup = () => {
       'type': 'geojson',
       'data': geojson
     });
+
+    mapLoaded = true;
 
     //generate color scale for voting districts
     const fillColor = [
@@ -123,6 +207,11 @@ const setup = () => {
       }
     });
 
+    const popup = new mapboxgl.Popup({
+      closeButton: false,
+      closeOnClick: false
+    });
+
     map.on('mousemove', 'bloecke', function(e) {
       if (e.features.length > 0) {
         if (hoveredStateId) {
@@ -136,6 +225,13 @@ const setup = () => {
           { source: 'bloecke', id: hoveredStateId },
           { hover: true }
         );
+
+        const coordinates = turf.center(e.features[0]).geometry.coordinates;
+        const description = `<strong>${e.features[0].properties["blknr_copy"]}</strong> (${e.features[0].properties["Insgesamt"]})`;
+        popup
+          .setLngLat(coordinates)
+          .setHTML(description)
+          .addTo(map);
       }
     });
        
@@ -147,6 +243,7 @@ const setup = () => {
         );
       }
       hoveredStateId = null;
+      popup.remove();
     });
 
     map.on('click', 'bloecke', function(e) {
@@ -184,52 +281,22 @@ const setup = () => {
             </ul>
           </p>
           <h3>Verschiebe zu Nachbarn</h3>
-          <select>
+          <select id="neighbor_select">
             ${ e.features[0].properties["neighbors"].split(",").map((d) => `<option value="${d}">${d} (${districts[districtKeys[d]].population} / ${districts[districtKeys[d]].population + e.features[0].properties["Insgesamt"]})</option>`).join("") }
           </select>
           <button id="districts-apply">Änderung anwenden</button>
         </div>`);
 
         d3.select('#districts-apply').on("click", () => {
-          // TODO: Switch District, update data structure and redraw!
+          geojson.features[id].properties["UWB"] = d3.select("#neighbor_select").property("value");
+          processData(false);
+          update();
         });
       }
     });      
   });
 
-  const overPopulationScale = d3.scaleLinear().range(['rgba(0, 0, 255, 0.5)', 'rgba(255, 255, 255, 0.5)', 'rgba(255, 0, 0, 0.5)']).domain([0, 2500, 3000]);
-
-  const deselectDistrictBlocks = () => {
-    if (hoveredDistrictId) {
-      districts[districtKeys[hoveredDistrictId]].blocks.forEach((block) => {
-        map.setFeatureState(
-          { source: 'bloecke', id: block },
-          { selectDistrict: false }
-        );
-      });
-    }
-    hoveredDistrictId = null;
-  };
-
-  let currentAsc = true;
-  let currentSort = null;
-  const sortRows = (key) => {
-    if (currentSort === key) {
-      currentAsc = !currentAsc;
-    }
-    currentSort = key;
-    rows.sort((a, b) => {
-      if (a[key] < b[key]) {
-        return 1 * (currentAsc ? 1 : -1);
-      } else if (a[key] > b[key]) {
-        return -1 * (currentAsc ? 1 : -1);
-      }
-      return 0;
-    });
-  };
-
-  const rows = d3.select('#districts-list tbody').selectAll('tr').data(districts).enter().append('tr')
-    .style("background-color", (d) => overPopulationScale(d.population))
+  rows = d3.select('#districts-list tbody').selectAll('tr').data(districts).enter().append('tr')
     .on("mouseover", (d) => {
       deselectDistrictBlocks();
 
@@ -246,27 +313,28 @@ const setup = () => {
       deselectDistrictBlocks();
     });
 
-  d3.selectAll("#districts-list thead th:nth-child(1), #districts-list tfoot th:nth-child(1)")
+  d3.selectAll("#districts-list thead th:nth-child(2), #districts-list tfoot th:nth-child(2)")
     .on("click", () => {
       sortRows("id");
     });
 
-  d3.selectAll("#districts-list thead th:nth-child(2), #districts-list tfoot th:nth-child(2)")
+  d3.selectAll("#districts-list thead th:nth-child(3), #districts-list tfoot th:nth-child(3)")
     .on("click", () => {
       sortRows("population");
     });
   
+  rows.append('td').attr("class", "colorcol").html((d) => `<span class="colorfield" style="background-color:${d.color};"></span>`);
   rows.append('td').text((d) => d.id);
-  rows.append('td').text((d) => d.population);
+  populationCol = rows.append('td').text((d) => d.population);
 
   sortRows("population");
 
-  const overallSVG = d3.select("#districts-overall").append("svg")
+  overallSVG = d3.select("#districts-overall").append("svg")
     .attr("width", 300)
-    .attr("height", 50)
-    .style("width", "100%")
+    .attr("height", 400)
+    .style("max-width", "100%")
     .style("height", "auto")
-    .attr("viewBox", "0 0 300 50")
+    .attr("viewBox", "0 0 300 400")
     .attr("preserveAspectRatio", "xMidYMid meet");
   
   overallSVG.append("text")
@@ -280,32 +348,133 @@ const setup = () => {
     .attr("text-anchor", "end")
     .text("> " + limit);
   
-  const overallScale = d3.scaleLinear().domain([0, over+under]).range([0, 288]);
-  
   overallSVG.append("rect")
+    .attr("id", "overallUnderRect")
     .attr("x", 5)
     .attr("y", 25)
     .attr("height", 25)
-    .attr("width", overallScale(under))
+    .style("fill", "blue");
+  
+  overallSVG.append("rect")
+    .attr("id", "overallUnderRectInit")
+    .style("opacity", 0.5)
+    .attr("x", 5)
+    .attr("y", 52)
+    .attr("height", 5)
     .style("fill", "blue");
   
   overallSVG.append("text")
-    .text(under)
+    .attr("id", "overallUnder")
     .style("fill", "white")
     .attr("x", 10)
     .attr("y", 40);
   
   overallSVG.append("rect")
-    .attr("x", 295 - overallScale(over))
+    .attr("id", "overallOverRect")
     .attr("y", 25)
     .attr("height", 25)
-    .attr("width", overallScale(over))
+    .style("fill", "red");
+
+  overallSVG.append("rect")
+    .attr("id", "overallOverRectInit")
+    .attr("y", 52)
+    .style("opacity", 0.5)
+    .attr("height", 5)
     .style("fill", "red");
   
   overallSVG.append("text")
-    .text(over)
+    .attr("id", "overallOver")
     .attr("text-anchor", "end")
     .style("fill", "white")
     .attr("x", 290)
     .attr("y", 40);
+  
+  // Histogram
+  histoX = d3.scaleLinear()
+      .domain(d3.extent(histoData))
+      .range([0, 265]);
+
+  histo = overallSVG.append("g")
+    .attr("transform", "translate(25,70)");
+  
+  histo.append("g")
+      .attr("transform", `translate(0,${histoHeight})`)
+      .call(d3.axisBottom(histoX));
+
+  histo.append("g")
+      .attr("id", "histoInitAxis")
+      .attr("transform", `translate(0,${histoHeight + 25})`)
+      .call(d3.axisTop(histoX));
+
+  histogram = d3.histogram()
+      .domain(histoX.domain())
+      .thresholds(20);
+
+  histoYAxis = histo.append("g");
+  histoRectsContainer = histo.append("g");
+  histoRects = histoRectsContainer.selectAll("rect");
+
+  const initBins = histogram(initHistoData);
+  histoInitY.domain([0, d3.max(initBins, (d) => d.length)]);
+
+  histo.append("g")
+    .attr("transform", "translate(0, 125)")
+    .call(d3.axisLeft(histoInitY).ticks(6));
+  
+  histo.append("g").attr("transform", "translate(0,126)").selectAll("rect").data(initBins)
+    .enter()
+    .append("rect")
+      .attr("x", 1)
+      .attr("transform", (d) => `translate(${histoX(d.x0)},0)`)
+      .attr("width", (d) => histoX(d.x1) - histoX(d.x0) - 1)
+      .attr("height", (d) => histoInitY(d.length))
+      .style("opacity", 0.5)
+      .style("fill", "red");
+
+  
+  update();
+};
+
+const update = () => {
+  rows.style("background-color", (d) => overPopulationScale(d.population));
+  populationCol.text((d) => d.population);
+  sortRows(currentSort);
+  sortRows(currentSort);
+
+  overallSVG.select("#overallUnder").text(under);
+  overallSVG.select("#overallOver").text(over);
+  overallSVG.select("#overallUnderRect")
+    .attr("width", overallScale(under));
+  overallSVG.select("#overallOverRect")
+    .attr("width", overallScale(over))
+    .attr("x", 295 - overallScale(over));
+  overallSVG.select("#overallUnderRectInit")
+    .attr("width", overallScale(initUnder));
+  overallSVG.select("#overallOverRectInit")
+    .attr("width", overallScale(initOver))
+    .attr("x", 295 - overallScale(initOver));
+
+  const bins = histogram(histoData);
+
+  histoY.domain([0, d3.max(bins, (d) => d.length)]);
+  histoYAxis.call(d3.axisLeft(histoY).ticks(6));
+
+  histoRects = histoRectsContainer.selectAll("rect").data(bins);
+
+  histoRects
+    .enter()
+    .append("rect")
+    .merge(histoRects)
+      .attr("x", 1)
+      .attr("transform", (d) => `translate(${histoX(d.x0)},${histoY(d.length)})`)
+      .attr("width", (d) => histoX(d.x1) - histoX(d.x0) - 1)
+      .attr("height", (d) => histoHeight - histoY(d.length))
+      .style("fill", "red");
+
+  histoRects.exit()
+    .remove();
+  
+  if (mapLoaded) {
+    map.getSource('bloecke').setData(geojson);
+  }
 };
