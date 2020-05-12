@@ -127,7 +127,7 @@ const histoInitY = d3.scaleLinear().range([0, histoHeight]);
 let histoYAxis,histoRects, histogram, histoX, histo, histoRectsContainer;
 
 // TODO: Check URL Params for loading the right model
-const server = "http://localhost:7339/";
+const server = "https://tsb.ara.uberspace.de/wahlbezirke/";
 let currentModel = "network";
 
 const setupMenu = (init) => {
