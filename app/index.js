@@ -127,13 +127,62 @@ const histoInitY = d3.scaleLinear().range([0, histoHeight]);
 let histoYAxis,histoRects, histogram, histoX, histo, histoRectsContainer;
 
 // TODO: Check URL Params for loading the right model
+const server = "http://localhost:7339/";
+let currentModel = "network";
+
+const setupMenu = (init) => {
+  d3.json(server + 'models')
+    .then((data) => {
+      d3.select("#districts-menu select").selectAll("option").remove();
+      d3.select("#districts-menu select").selectAll("option").data(data).enter().append("option")
+        .attr("value", (d) => d.uuid)
+        .attr("selected", (d) => (currentModel === d.uuid) ? "selected" : null)
+        .text((d) => `${d.name} (${d.timestamp})`);
+      if (init) {
+        d3.select("#button-load").on("click", () => {
+          load(false, d3.select("#districts-menu select").property("value"));
+        });
+        d3.select("#button-save").on("click", () => {
+          const url = server + "savemodel";
+
+          const xhr = new XMLHttpRequest();
+          xhr.open("POST", url, true);
+          xhr.setRequestHeader("Content-Type", "application/json");
+          
+          xhr.onreadystatechange = () => {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+              const json = JSON.parse(xhr.responseText);
+              setupMenu(false);
+            }
+          };
+          
+          const name = d3.select("#variant-name-field").property("value");
+          geojson.properties.name = name;
+          geojson.properties.timestamp = (new Date()).toJSON();
+
+          xhr.send(JSON.stringify({"geojson": JSON.stringify(geojson), "name": name}));
+        });
+      }
+    });
+};
+
 // Load the data
-d3.json('network.geojson')
+const load = (init, modelName) => {
+  currentModel = modelName;
+  d3.json(server + 'model/' + modelName + '.geojson')
   .then((data) => {
+    d3.select("#districts-menu p").html(`<strong>${data.properties.name}</strong><br />${data.properties.timestamp}`);
     geojson = data;
-    processData(true);
-    setup();
+    processData(init);
+    if (init) {
+      setup();
+    } else {
+      update();
+    }
+    setupMenu(init);
   });
+};
+load(true, 'network');
  
 const setup = () => {
   // Create Map
