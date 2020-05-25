@@ -1,5 +1,3 @@
-- load generated models
-
 - population view
 
 - mds: manual models (circle vs rect)
