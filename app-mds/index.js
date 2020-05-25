@@ -15,11 +15,6 @@ const weights = {
     weight: 5,
     label: "Number of affected districts"
   },
-  "Number_of_Overpopulated_Districts": {
-    ignore: false,
-    weight: 5,
-    label: "Number of overpopulated districts"
-  },
   "Average_Area_Perimeter_Score": {
     ignore: true
   },
@@ -41,6 +36,11 @@ const weights = {
   },
   "Minimum_Convex_Hull_Score": {
     ignore: true
+  },
+  "Number_of_Overpopulated_Districts": {
+    ignore: false,
+    weight: 5,
+    label: "Number of overpopulated districts"
   },
   "Average_Population_Size": {
     ignore: false,
@@ -78,6 +78,23 @@ g.append("rect")
   .attr("width", width - 2 * padding)
   .attr("height", width - 2 * padding);
 
+// add background grid
+const numLines = 20;
+
+g.append("g").selectAll("line").data(d3.range(numLines)).enter().append("line")
+  .attr("y1", 0)
+  .attr("y2", height - 2 * padding)
+  .attr("x1", (d, i) => (width - 2 * padding) / (numLines + 1) * (i + 1))
+  .attr("x2", (d, i) => (width - 2 * padding) / (numLines + 1) * (i + 1))
+  .style("stroke", "rgba(255,255,255,0.5)");
+
+g.append("g").selectAll("line").data(d3.range(numLines)).enter().append("line")
+  .attr("x1", 0)
+  .attr("x2", width - 2 * padding)
+  .attr("y1", (d, i) => (height - 2 * padding) / (numLines + 1) * (i + 1))
+  .attr("y2", (d, i) => (height - 2 * padding) / (numLines + 1) * (i + 1))
+  .style("stroke", "rgba(255,255,255,0.5)");
+
 const dimensions = d3.select("#dimensions ul").selectAll("li").data(weightKeys.filter((d) => !weights[d].ignore)).enter().append("li")
   .on("mouseover", (d) => {
     const rScale = d3.scaleLinear().domain([0,1]).range([3, 10]);
@@ -87,14 +104,11 @@ const dimensions = d3.select("#dimensions ul").selectAll("li").data(weightKeys.f
     points.transition().attr("r", 5);
   });
 
-const mWidth = 300;
-const mHeight = 75;
-const mPadding = 25;
-const miniGraphs = dimensions.append("svg")
-  .attr("width", mWidth)
-  .attr("height", mHeight);
+const dimensionLabels = dimensions.append("label");
 
-dimensions.append("br")
+const updateDimensions = () => {
+  dimensionLabels.html((d) => `${weights[d].label} (${weights[d].weight})`);
+};
 
 dimensions.append("input")
   .attr("type", "range")
@@ -108,28 +122,31 @@ dimensions.append("input")
     updateData();
   });
 
-const dimensionLabels = dimensions.append("label");
+dimensions.append("br")
 
-const updateDimensions = () => {
-  dimensionLabels.html((d) => `${weights[d].label} (${weights[d].weight})`);
-};
+const mWidth = 300;
+const mHeight = 75;
+const mPadding = 25;
+const miniGraphs = dimensions.append("svg")
+  .attr("width", mWidth)
+  .attr("height", mHeight);
 
 updateDimensions();
 
 d3.select("#map").append("br");
 const legendSvg = d3.select("#map").append("svg")
+  .style("opacity", 0)
   .attr("width", width)
   .attr("height", 50);
 
 const legendCount = 50;
 const legendScale = d3.scaleSequentialSqrt([0, legendCount], d3.interpolateViridis);
-legendSvg.append("g").attr("transform", `translate(${padding}, 0)`).selectAll("rect").data(d3.range(legendCount)).enter().append("rect")
-  .attr("width", (width - 2 * padding) / legendCount)
-  .attr("height", 25)
-  .attr("x", (i) => (width - 2 * padding) / legendCount * i)
-  .style("fill" , (i) => legendScale(i));
-
-
+legendSvg.append("g")
+  .attr("transform", `translate(${padding}, 0)`).selectAll("rect").data(d3.range(legendCount)).enter().append("rect")
+    .attr("width", (width - 2 * padding) / legendCount)
+    .attr("height", 25)
+    .attr("x", (i) => (width - 2 * padding) / legendCount * i)
+    .style("fill" , (i) => legendScale(i));
 
 d3.csv("selected_sim_stats.csv")
   .then((csv) => {
@@ -158,12 +175,14 @@ d3.csv("selected_sim_stats.csv")
 
     points = g.selectAll("circle").data(data).enter().append("circle")
       .attr("r", 5)
+      .style("cursor", "pointer")
       .on("mouseover", (d, pId) => {
         miniGraphs.each((key, i, nodes) => {
           const histo = d3.select(nodes[i]);
           const histoX = d3.scaleLinear().domain(d3.extent(data, (d) => d[key])).range([0, mWidth]);
           histo.select("circle")
-            .style("fill", "black")
+            .style("fill", "#E60032")
+            .style("stroke", "#fff")
             .attr("cx", histoX(d[key]) + mPadding);
         });
 
@@ -175,6 +194,8 @@ d3.csv("selected_sim_stats.csv")
           .attr("transform", `translate(${padding}, 25)`)
           .attr("id", "axis")
           .call(d3.axisBottom(colorSeqScaleLegend));
+        
+        legendSvg.style("opacity", 1);
 
         points.style("fill", (d, i) => {
           return colorSeqScale(distMatrix[pId][i]);
@@ -184,9 +205,11 @@ d3.csv("selected_sim_stats.csv")
         miniGraphs.each((key, i, nodes) => {
           const histo = d3.select(nodes[i]);
           histo.select("circle")
+            .style("stroke", "transparent")
             .style("fill", "transparent");
         });
         points.style("fill", "#000");
+        legendSvg.style("opacity", 0);
       });
 
     miniGraphs.each((key, i, nodes) => {
@@ -213,18 +236,22 @@ d3.csv("selected_sim_stats.csv")
         .attr("transform", `translate(${mPadding},0)`)
         .call(d3.axisLeft(histoY).ticks(3));
     
-      histo.append("g").attr("transform", `translate(${mPadding},${mHeight - mPadding})`).selectAll("rect").data(initBins)
-        .enter()
-        .append("rect")
-          .attr("x", 1)
-          .attr("transform", (d) => `translate(${histoX(d.x0)},-${mHeight - mPadding - histoY(d.length)})`)
-          .attr("width", (d) => histoX(d.x1) - histoX(d.x0) - 1)
-          .attr("height", (d) => mHeight - mPadding - histoY(d.length))
-          .style("fill", "red");
+      histo.append("g")
+        .attr("transform", `translate(${mPadding},${mHeight - mPadding})`)
+        .selectAll("rect").data(initBins)
+          .enter()
+          .append("rect")
+            .attr("x", 1)
+            .attr("transform", (d) => `translate(${histoX(d.x0)},-${mHeight - mPadding - histoY(d.length)})`)
+            .attr("width", (d) => histoX(d.x1) - histoX(d.x0) - 1)
+            .attr("height", (d) => mHeight - mPadding - histoY(d.length))
+            .style("fill", "#2e91d2");
 
       histo.append("circle")
         .attr("cy", mHeight - mPadding)
         .attr("r", 5)
+        .style("stroke-width", 1)
+        .style("stroke", "transparent")
         .style("fill", "transparent");
 
     });

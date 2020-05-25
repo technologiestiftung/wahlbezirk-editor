@@ -1,0 +1,85 @@
+header{
+  position: fixed;
+  top:0;
+  left:0;
+  width:100%;
+  background-color:#2e91d2;
+  height: 45px;
+  overflow:hidden;
+  color: white;
+  -webkit-box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.5);
+  -moz-box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.5);
+  box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.5);
+  z-index: 5;
+}
+
+header ul, header li{
+  margin:0;
+  padding:0;
+  list-style: none;
+}
+
+header a{
+  color: white;
+  text-decoration:none;
+}
+
+#logo{
+  float:left;
+  margin:10px;
+  font-size: 18px;
+  font-weight: "Clan Medium", sans-serif;
+  display: table;
+}
+
+#logo>div{
+  display: table-row;
+}
+
+#logo>div>span{
+  display: table-cell;
+  vertical-align: middle;
+}
+
+#logo img{
+  width: 21.5px;
+  height: 21.5px;
+  margin-right:5px;
+}
+
+nav{
+  float:right;
+  margin:10px;
+}
+
+nav ul li{
+  float:left;
+  display:table;
+padding-left:15px;
+}
+
+nav ul li a{
+  display: table-row;
+  font-size:12px;
+}
+
+nav ul li a span{
+  display: table-cell;
+  vertical-align: middle;
+}
+
+nav img{
+  width:auto;
+  height:20px;
+  margin-right:5px;
+  filter: invert(100%) sepia(1%) saturate(7496%) hue-rotate(264deg) brightness(105%) contrast(100%);
+}
+
+nav a:hover{
+  color: #213A8F;
+}
+
+nav a:hover img{
+  filter: invert(16%) sepia(75%) saturate(2381%) hue-rotate(219deg) brightness(90%) contrast(92%);
+}
+

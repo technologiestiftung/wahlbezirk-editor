@@ -137,7 +137,10 @@ const setupMenu = (init) => {
       d3.select("#districts-menu select").selectAll("option").data(data).enter().append("option")
         .attr("value", (d) => d.uuid)
         .attr("selected", (d) => (currentModel === d.uuid) ? "selected" : null)
-        .text((d) => `${d.name} (${d.timestamp})`);
+        .text((d) => {
+          const date = new Date(d.timestamp);
+          return `${d.name} (${date.getDate()}.${date.getMonth()}.${date.getFullYear()} ${formatTime(date.getHours())}:${formatTime(date.getMinutes())})`
+        });
       if (init) {
         d3.select("#button-load").on("click", () => {
           load(false, d3.select("#districts-menu select").property("value"));
@@ -166,12 +169,20 @@ const setupMenu = (init) => {
     });
 };
 
+const formatTime = (num) => {
+  if (num < 10) {
+    return "0" + num;
+  }
+  return num;
+};
+
 // Load the data
 const load = (init, modelName) => {
   currentModel = modelName;
   d3.json(server + 'model/' + modelName + '.geojson')
   .then((data) => {
-    d3.select("#districts-menu p").html(`<strong>${data.properties.name}</strong><br />${data.properties.timestamp}`);
+    const date = new Date(data.properties.timestamp);
+    d3.select("#districts-menu p").html(`<strong>${data.properties.name}</strong> (${date.getDate()}.${date.getMonth()}.${date.getFullYear()} ${formatTime(date.getHours())}:${formatTime(date.getMinutes())})`);
     geojson = data;
     processData(init);
     if (init) {
@@ -444,10 +455,10 @@ const setupOtherStuff = () => {
 
   overallSVG = d3.select("#districts-overall").append("svg")
     .attr("width", 300)
-    .attr("height", 400)
+    .attr("height", 300)
     .style("max-width", "100%")
     .style("height", "auto")
-    .attr("viewBox", "0 0 300 400")
+    .attr("viewBox", "0 0 300 300")
     .attr("preserveAspectRatio", "xMidYMid meet");
   
   overallSVG.append("text")
@@ -464,7 +475,7 @@ const setupOtherStuff = () => {
   overallSVG.append("rect")
     .attr("id", "overallUnderRect")
     .attr("x", 5)
-    .attr("y", 25)
+    .attr("y", 20)
     .attr("height", 25)
     .style("fill", "blue");
   
@@ -472,7 +483,7 @@ const setupOtherStuff = () => {
     .attr("id", "overallUnderRectInit")
     .style("opacity", 0.5)
     .attr("x", 5)
-    .attr("y", 52)
+    .attr("y", 47)
     .attr("height", 5)
     .style("fill", "blue");
   
@@ -480,17 +491,17 @@ const setupOtherStuff = () => {
     .attr("id", "overallUnder")
     .style("fill", "white")
     .attr("x", 10)
-    .attr("y", 40);
+    .attr("y", 35);
   
   overallSVG.append("rect")
     .attr("id", "overallOverRect")
-    .attr("y", 25)
+    .attr("y", 20)
     .attr("height", 25)
     .style("fill", "red");
 
   overallSVG.append("rect")
     .attr("id", "overallOverRectInit")
-    .attr("y", 52)
+    .attr("y", 47)
     .style("opacity", 0.5)
     .attr("height", 5)
     .style("fill", "red");
@@ -500,7 +511,7 @@ const setupOtherStuff = () => {
     .attr("text-anchor", "end")
     .style("fill", "white")
     .attr("x", 290)
-    .attr("y", 40);
+    .attr("y", 35);
   
   // Histogram
   histoX = d3.scaleLinear()

@@ -1,18 +1,49 @@
-html, body{
-  margin:0;
-  padding:0;
-  font-size:10px;
-  font-family: Arial, Helvetica, sans-serif;
+#page {
+  display:flex;
+  height:calc(100vh - 45px);
+  margin-top:45px;
+  flex-direction: row;
+  overflow-x:hidden;
 }
 
-#dimensions, #map{
-  float:left;
+#map{
+  flex: 1.5;  
 }
 
-ul, li{
+#dimensions{
+  flex: 2;
+}
+
+#dimensions ul, #dimensions li{
   list-style: none;
   margin:0;
   padding:0;
+}
+
+#dimensions ul{
+  display:flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+}
+
+#dimensions li{
+  padding-top:25px;
+  min-width:330px;
+  margin-right:40px;
+}
+
+input{
+  width:100px;
+  float:right;
+}
+
+#dimensions svg{
+  margin-top:10px;
+}
+
+label{
+  padding-right:10px; 
+  font-size:12px;
 }
 
 svg{

@@ -2,6 +2,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <link href="https://api.mapbox.com/mapbox-gl-js/v1.10.0/mapbox-gl.css" rel="stylesheet" />
     <link rel="stylesheet" href="../assets/css/basics.css">
     <link rel="stylesheet" href="../assets/css/header.css">
     <link rel="stylesheet" href="index.css">
@@ -50,13 +51,11 @@
       </nav>
     </header>
     <div id="page">
-      <div id="map"></div>
-      <div id="dimensions"><ul></ul></div>
     </div>
     <img id="odis" src="../assets/images/odis-logo.png" alt="ODIS" />
     <script src="https://d3js.org/d3.v5.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
-    <script src="mds.js"></script>
+    <script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v1.10.0/mapbox-gl.js"></script>
     <script src="index.js"></script>
   </body>
 </html>
