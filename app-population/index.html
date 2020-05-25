@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <link href="https://api.mapbox.com/mapbox-gl-js/v1.10.0/mapbox-gl.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../assets/css/basics.css">
+    <link rel="stylesheet" href="../assets/css/header.css">
+    <link rel="stylesheet" href="index.css">
+  </head>
+  <body>
+    <header>
+      <div id="logo">
+        <div>
+          <span><img src="../assets/images/logo@2x.png" alt="Wahlbezirke" /></span>
+          <span>Wahlbezirke</span>
+        </div>
+      </div>
+      <nav>
+        <ul>
+          <li>
+            <a href="/app-info/index.html">
+              <span><img src="../assets/images/icon-info@2x.png" alt="Info" /></span>
+              <span>Info</span>
+            </a>
+          </li>
+          <li>
+            <a href="/app-population/index.html">
+              <span><img src="../assets/images/icon-population@2x.png" alt="Bevölkerung" /></span>
+              <span>Bevölkerung</span>
+            </a>
+          </li>
+          <li>
+            <a href="/app-simulation/index.html">
+              <span><img src="../assets/images/icon-simulation@2x.png" alt="Simulation" /></span>
+              <span>Simulation</span>
+            </a>
+          </li>
+          <li>
+            <a href="/app-mds/index.html">
+              <span><img src="../assets/images/icon-mds@2x.png" alt="Varianten" /></span>
+              <span>Varianten</span>
+            </a>
+          </li>
+          <li>
+            <a href="/app-editor/index.html">
+              <span><img src="../assets/images/icon-editor@2x.png" alt="Editor" /></span>
+              <span>Editor</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </header>
+    <div id="page">
+    </div>
+    <img id="odis" src="../assets/images/odis-logo.png" alt="ODIS" />
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v1.10.0/mapbox-gl.js"></script>
+    <script src="index.js"></script>
+  </body>
+</html>

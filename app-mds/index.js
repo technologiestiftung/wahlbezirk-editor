@@ -210,6 +210,9 @@ d3.csv("selected_sim_stats.csv")
         });
         points.style("fill", "#000");
         legendSvg.style("opacity", 0);
+      })
+      .on("click", (d) => {
+        window.location.href = '/app-editor/index.html?model=' + d["X"];
       });
 
     miniGraphs.each((key, i, nodes) => {

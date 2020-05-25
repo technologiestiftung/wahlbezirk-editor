@@ -193,7 +193,12 @@ const load = (init, modelName) => {
     setupMenu(init);
   });
 };
-load(true, 'network');
+
+if (window.location.href.indexOf("?model=") >= 0) {
+  load(true, window.location.href.split("?model=")[1]);
+} else {
+  load(true, 'network');
+}
  
 const setup = () => {
   // Create Map
