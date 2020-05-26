@@ -1,0 +1,19 @@
+.block{
+  stroke:rgba(0,0,0,0);
+  fill-opacity: 0.5;
+  transition: fill 0.5s ease;
+  transition: opacity 0.5s ease;
+  transition: stroke 0.1s ease;
+}
+
+.block.full{
+  fill-opacity:1;
+}
+
+.block.big{
+  stroke: rgba(0,0,0,1);
+}
+
+.block.big.hover, .block.hover{
+  stroke: red;
+}
