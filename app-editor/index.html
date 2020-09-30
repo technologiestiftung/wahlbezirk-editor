@@ -3,8 +3,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
     <link href="https://api.mapbox.com/mapbox-gl-js/v1.10.0/mapbox-gl.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="../assets/css/basics.css">
     <link rel="stylesheet" href="../assets/css/header.css">
+
     <link rel="stylesheet" href="index.css">
   </head>
   <body>
@@ -54,11 +56,12 @@
       <div id="districts">
         <div id="districts-menu">
           <p></p>
-          <select>
+          <select class="form-control">
           </select>
-          <button id="button-load">Auswählen</button>
-          <input type="text" placeholder="Name für neue Variante" id="variant-name-field" />
-          <button id="button-save">Aktuelle Variante speichern</button>
+          
+          <button class="btn btn-primary" id="button-load">Auswählen</button>
+          <input type="text" class="form-control" placeholder="Name für neue Variante" id="variant-name-field" />
+          <button class="btn btn-primary" id="button-save">Speichern</button>
         </div>
         <div id="districts-overall">
           <p>Übersicht der Wahlbezirke mit zu vielen Einwohner*innen:</p>

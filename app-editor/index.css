@@ -13,6 +13,7 @@
 #districts-list{
   flex: 2;
   overflow-y:scroll;
+  margin: 10px 20px 10px 20px;
 }
 
 #districts{
@@ -21,11 +22,14 @@
   display:flex;
   flex-direction: column;
   min-height: min-content;
+  padding:20px 20px;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
 
 #districts-menu{
-  padding:20px 10px;
-  height: 140px;
+  
+  margin-bottom: 20px;
+  
 }
 
 #districts-menu p{
@@ -34,24 +38,31 @@
 
 select, input, button{
   padding: 2px 5px;
+  margin: 5px;
 }
 
+
 select{
-  margin-top:5px;
+  margin-top:20px;
 }
 
 #variant-name-field{
-  width: 100%;
-  margin-top:10px;
+  display: block;
+  margin-top:20px;
+  
 }
 
 #districts-menu p strong{
   font-family: "Clan Medium";
   font-size:18px;
+  color: #2e91d2;
+  margin-left: 10px;
+  
 }
 
 #districts-overall{
   height: 360px;
+
 }
 
 #inline-odis{
@@ -71,7 +82,7 @@ select{
 table{
   margin-top:20px;
   width:100%;
-  font-size:10px;
+  font-size:12px;
 }
 
 tbody tr{
