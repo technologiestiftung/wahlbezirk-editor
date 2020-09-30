@@ -55,12 +55,17 @@ nav{
 nav ul li{
   float:left;
   display:table;
-padding-left:15px;
+padding-left:25px;
 }
 
 nav ul li a{
   display: table-row;
-  font-size:12px;
+  font-size:14px;
+}
+
+nav ul li a:hover{
+  color: yellow;
+  text-decoration: none;
 }
 
 nav ul li a span{
@@ -73,6 +78,7 @@ nav img{
   height:20px;
   margin-right:5px;
   filter: invert(100%) sepia(1%) saturate(7496%) hue-rotate(264deg) brightness(105%) contrast(100%);
+  vertical-align: text-bottom;
 }
 
 nav a:hover{

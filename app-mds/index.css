@@ -14,6 +14,7 @@
   flex: 2;
 }
 
+
 #dimensions ul, #dimensions li{
   list-style: none;
   margin:0;
@@ -30,6 +31,7 @@
   padding-top:25px;
   min-width:330px;
   margin-right:40px;
+  position:relative;
 }
 
 input{
@@ -48,4 +50,28 @@ label{
 
 svg{
   overflow: visible;
+}
+
+
+/* Tooltip text */
+.tooltiptext {
+  visibility: hidden;
+  width: 330px;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  padding: 5px;
+  border-radius: 6px;
+ 
+  /* Position the tooltip text - see examples below! */
+  position: absolute;
+  z-index: 1;
+  
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+li:hover .tooltiptext {
+  visibility: visible;
+  top:140px;
+ 
 }

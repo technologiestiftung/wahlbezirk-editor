@@ -8,12 +8,14 @@ const weights = {
   "Number_of_Modified_Blocks": {
     ignore: false,
     weight: 5,
-    label: "Number of modified blocks"
+    label: "Number of modified blocks",
+    tooltip: "Number of modified blocks"
   },
   "Number_of_Affected_Districts": {
     ignore: false,
     weight: 5,
-    label: "Number of affected districts"
+    label: "Number of affected districts",
+    tooltip: "Number of affected districts"
   },
   "Average_Area_Perimeter_Score": {
     ignore: true
@@ -27,12 +29,14 @@ const weights = {
   "Average_Convex_Hull_Score": {
     ignore: false,
     weight: 5,
-    label: "Average convex hull score"
+    label: "Average convex hull score",
+    tooltip: "Average convex hull score"
   },
   "Median_Convex_Hull_Score": {
     ignore: false,
     weight: 5,
-    label: "Median convex hull score"
+    label: "Median convex hull score",
+    tooltip: "Median convex hull score"
   },
   "Minimum_Convex_Hull_Score": {
     ignore: true
@@ -40,22 +44,26 @@ const weights = {
   "Number_of_Overpopulated_Districts": {
     ignore: false,
     weight: 5,
-    label: "Number of overpopulated districts"
+    label: "Number of overpopulated districts",
+    tooltip: "Number of overpopulated districts"
   },
   "Average_Population_Size": {
     ignore: false,
     weight: 5,
-    label: "Average population size"
+    label: "Average population size",
+    tooltip: "Average population size"
   },
   "Median_Population_Size": {
     ignore: false,
     weight: 5,
-    label: "Median population size"
+    label: "Median population size",
+    tooltip: "Median population size"
   },
   "Standard_Deviation_Population_Size": {
     ignore: false,
     weight: 5,
-    label: "Standard deviation population size"
+    label: "Standard deviation population size",
+    tooltip: "Standard deviation population size"
   }
 };
 const weightKeys = Object.keys(weights);
@@ -104,6 +112,16 @@ const dimensions = d3.select("#dimensions ul").selectAll("li").data(weightKeys.f
     points.transition().attr("r", 5);
   });
 
+ 
+/* append tooltips to all dimensions */
+dimensions.append('span').attr("class", "tooltiptext");
+const dimensionTooltips = d3.select("#dimensions ul").selectAll("span");
+const updateTooltips = () => {
+  dimensionTooltips.html((d) => `${weights[d].tooltip}`);
+};
+
+
+
 const dimensionLabels = dimensions.append("label");
 
 const updateDimensions = () => {
@@ -119,10 +137,12 @@ dimensions.append("input")
     const val = d3.select(nodes[i]).property("value");
     weights[d].weight = val;
     updateDimensions();
+    
     updateData();
   });
 
 dimensions.append("br")
+
 
 const mWidth = 300;
 const mHeight = 75;
@@ -132,6 +152,7 @@ const miniGraphs = dimensions.append("svg")
   .attr("height", mHeight);
 
 updateDimensions();
+updateTooltips();
 
 d3.select("#map").append("br");
 const legendSvg = d3.select("#map").append("svg")
