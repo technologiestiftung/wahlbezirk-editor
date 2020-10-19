@@ -1,57 +1,56 @@
 #page {
-  display:flex;
-  height:calc(100vh - 45px);
-  margin-top:45px;
+  display: flex;
+  height: calc(100vh - 45px);
+  margin-top: 45px;
   flex-direction: row;
-  overflow-x:hidden;
+  overflow-x: hidden;
 }
 
-#map{
-  flex: 1.5;  
+#map {
+  flex: 1.2;
 }
 
-#dimensions{
+#dimensions {
   flex: 2;
 }
 
-
-#dimensions ul, #dimensions li{
+#dimensions ul,
+#dimensions li {
   list-style: none;
-  margin:0;
-  padding:0;
+  margin: 0;
+  padding: 0;
 }
 
-#dimensions ul{
-  display:flex;
+#dimensions ul {
+  display: flex;
   flex-wrap: wrap;
   flex-direction: row;
 }
 
-#dimensions li{
-  padding-top:25px;
-  min-width:330px;
-  margin-right:40px;
-  position:relative;
+#dimensions li {
+  padding-top: 25px;
+  min-width: 330px;
+  margin-right: 40px;
+  position: relative;
 }
 
-input{
-  width:100px;
-  float:right;
+input {
+  width: 100px;
+  float: right;
 }
 
-#dimensions svg{
-  margin-top:10px;
+#dimensions svg {
+  margin-top: 10px;
 }
 
-label{
-  padding-right:10px; 
-  font-size:12px;
+label {
+  padding-right: 10px;
+  font-size: 12px;
 }
 
-svg{
+svg {
   overflow: visible;
 }
-
 
 /* Tooltip text */
 .tooltiptext {
@@ -62,16 +61,14 @@ svg{
   text-align: center;
   padding: 5px;
   border-radius: 6px;
- 
+
   /* Position the tooltip text - see examples below! */
   position: absolute;
   z-index: 1;
-  
 }
 
 /* Show the tooltip text when you mouse over the tooltip container */
 li:hover .tooltiptext {
   visibility: visible;
-  top:140px;
- 
+  top: 140px;
 }
